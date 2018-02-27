@@ -29,6 +29,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _textController = new TextEditingController();
   final List<ChatMessage> _messages = <ChatMessage>[];
 
+  bool _isComposing = false;
+
   void _handleSubmitted(String text) {
     _textController.clear();
 
@@ -71,7 +73,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     for (ChatMessage message in _messages) {
-      message.animationController.dispose()
+      message.animationController.dispose();
     }
     super.dispose();
   }
@@ -105,6 +107,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             keyboardType: TextInputType.emailAddress,
                             maxLines: 1,
                             controller: _textController,
+                            onChanged: (String text) {
+                              setState(() {
+                                _isComposing = text.length > 0;
+                              });
+                            },
                             onSubmitted: _handleSubmitted,
                             decoration: new InputDecoration.collapsed(
                                 hintText: "Send a message"),
@@ -113,9 +120,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       new Container(
                         margin: new EdgeInsets.symmetric(horizontal: 4.0),
                         child: new IconButton(
-                            icon: new Icon(Icons.send,),
-                            onPressed: () =>
-                                _handleSubmitted(_textController.text)),
+                          icon: new Icon(Icons.send,),
+                          onPressed:
+                          _isComposing
+                              ? () => _handleSubmitted(_textController.text)
+                              : null,
+                        ),
+
                       )
                     ],
                   )
@@ -147,18 +158,20 @@ class ChatMessage extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 16.0),
                 child: new CircleAvatar(child: new Text(_name[0])),
               ),
-              new Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  new Text(_name, style: Theme
-                      .of(context)
-                      .textTheme
-                      .subhead),
-                  new Container(
-                    margin: const EdgeInsets.only(top: 5.0),
-                    child: new Text(text),
-                  ),
-                ],
+              new Expanded(
+                child: new Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    new Text(_name, style: Theme
+                        .of(context)
+                        .textTheme
+                        .subhead),
+                    new Container(
+                      margin: const EdgeInsets.only(top: 5.0),
+                      child: new Text(text),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),),
